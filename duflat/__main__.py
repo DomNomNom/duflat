@@ -22,6 +22,10 @@ from collections import deque
 
 from duflat.version import __version__
 
+paths_to_ignore = {
+    Path('/proc'),
+    Path('/dev'),
+}
 
 def get_size(path):
     if path.is_file() or path.is_symlink():
@@ -40,6 +44,7 @@ def get_children(path):
         return []
     return [
         p for p in path.iterdir()
+        if p not in paths_to_ignore
     ]
 
 
