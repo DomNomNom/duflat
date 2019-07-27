@@ -24,7 +24,7 @@ from collections import deque
 from duflat.version import __version__
 
 
-def get_size(path: Path) -> int:
+def get_size(path):
     if path.is_file() or path.is_symlink():
         return path.stat().st_size
 
@@ -36,7 +36,7 @@ def get_size(path: Path) -> int:
         stdout = p.stdout.read()
     return int(stdout.split(b'\t')[0])
 
-def get_children(path: Path) -> List[Path]:
+def get_children(path):
     if not path.is_dir():
         return []
     return [
@@ -45,12 +45,12 @@ def get_children(path: Path) -> List[Path]:
 
 
 class SearchNode:
-    def __init__(self, path: Path, size: int):
+    def __init__(self, path, size: int):
         self.path = path
         self.size = size # num bytes
         self.children = None  # Optional[List['SearchNode']]
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return '{:>12} -> {}'.format(self.size, self.path)
 
     def expand_children(self, min_size_to_expand: int):
@@ -61,7 +61,7 @@ class SearchNode:
         for child in self.children:
             child.expand_children(min_size_to_expand)
 
-    def _find_node_closest_to_size(self, desired_size: int) -> Tuple[int, List[int]]:
+    def _find_node_closest_to_size(self, desired_size: int):
         """
         the returned tuple is
             best_diff
@@ -78,7 +78,7 @@ class SearchNode:
                     best[1].append(i)
         return best
 
-    def _pop_deep_node(self, index_stack: List[int]) -> 'SearchNode':
+    def _pop_deep_node(self, index_stack):
         if index_stack == []:
             return self
         i = index_stack.pop()
@@ -91,11 +91,11 @@ class SearchNode:
         self.size -= deep_node.size
         return deep_node
 
-    def pop_node_of_similar_size(self, desired_size: int) -> 'SearchNode':
+    def pop_node_of_similar_size(self, desired_size: int):
         _, index_stack = self._find_node_closest_to_size(desired_size)
         return self._pop_deep_node(index_stack)
 
-def make_duflat(root: Path, max_nodes: int) -> List[SearchNode]:
+def make_duflat(root, max_nodes: int):
     root_node = SearchNode(root, get_size(root))
     out = [root_node]
     for num_remaining in range(max_nodes, 1, -1):
