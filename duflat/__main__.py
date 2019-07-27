@@ -1,6 +1,5 @@
 """duflat
-Runs the training exercise playlist in the given python file.
-The playlist has to be provided via a make_default_playlist() function.
+Produces a flat summary of disc usage.
 
 Usage:
     duflat [--dir=<root_dir>] [--num_lines=<num_lines>]
@@ -19,7 +18,6 @@ from pprint import pprint
 import sys
 from pathlib import Path
 from typing import Dict, Optional, List, Tuple
-from dataclasses import dataclass
 from subprocess import Popen, PIPE
 from collections import deque
 
@@ -46,12 +44,11 @@ def get_children(path: Path) -> List[Path]:
     ]
 
 
-@dataclass
 class SearchNode:
-    path: Path
-    size: int # num bytes
-
-    children: Optional[List['SearchNode']] = None
+    def __init__(self, path: Path, size: int):
+        self.path = path
+        self.size = size # num bytes
+        self.children = None  # Optional[List['SearchNode']]
 
     def __repr__(self) -> str:
         return '{:>12} -> {}'.format(self.size, self.path)

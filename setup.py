@@ -1,8 +1,12 @@
 import setuptools
-import importlib
+import sys
 
 # Avoid native import statements as we don't want to depend on the package being created yet.
 def load_module(module_name, full_path):
+    if sys.version_info < (3,5):
+        import imp
+        return imp.load_source(module_name, full_path)
+    import importlib
     spec = importlib.util.spec_from_file_location(module_name, full_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -17,7 +21,6 @@ setuptools.setup(
     name='duflat',
     packages=setuptools.find_packages(),
     install_requires=[
-        'dataclasses',
         'docopt',
     ],
     python_requires='>=3.4.0',
