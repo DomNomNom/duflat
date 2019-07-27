@@ -28,7 +28,7 @@ def get_size(path):
         return path.stat().st_size
 
     if not path.is_dir():
-        print('{} is funny: ', path, file=sys.stderr)
+        return 1
 
     print('scanning ', path, file=sys.stderr)
     with Popen(['du', '-s', '--bytes', str(path)], stdout=PIPE) as p:
