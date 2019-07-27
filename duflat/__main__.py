@@ -17,7 +17,6 @@ from docopt import docopt
 from pprint import pprint
 import sys
 from pathlib import Path
-from typing import Dict, Optional, List, Tuple
 from subprocess import Popen, PIPE
 from collections import deque
 
