@@ -2,7 +2,7 @@
 Produces a flat summary of disc usage.
 
 Usage:
-    duflat [--dir=<root_dir>] [--num_lines=<num_lines>]
+    duflat [--dir=<root_dir>] [--num_lines=<num_lines>] [--influx]
     duflat (-h | --help)
     duflat --version
 
@@ -35,7 +35,7 @@ def get_size(path):
         return 1
 
     print('scanning ', path, file=sys.stderr)
-    with Popen(['du', '-s', '--bytes', str(path)], stdout=PIPE) as p:
+    with Popen(['du', '-s', '--block-size=1', str(path)], stdout=PIPE) as p:
         stdout = p.stdout.read()
     return int(stdout.split(b'\t')[0])
 
@@ -112,13 +112,42 @@ def make_duflat(root, max_nodes: int):
     out.sort(key=lambda node: (node.path, -node.size))
     return out
 
+from influxdb import InfluxDBClient
+from datetime import datetime
+def output_to_influxdb(search_nodes):
+    # TODO: hardcode less things
+    time_str = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+    db_name = 'duflat'
+    client = InfluxDBClient(host='localhost', port=8086)
+    client.create_database(db_name)
+    client.switch_database(db_name)
+    json_body = [
+        {
+            'measurement': 'disc_usage',
+            'tags': {
+                'path': str(node.path.resolve()),
+                'owner': node.path.owner(),
+            },
+            'time': time_str,
+            'fields': {
+                'size': node.size,
+            },
+        }
+        for node in search_nodes
+    ]
+    client.write_points(json_body)
+    print('writing to influx complete.')
+
 def main():
     arguments = docopt(__doc__, version=__version__)
+    print(arguments)
     max_nodes = int(arguments['--num_lines'])
     root = Path(arguments['--dir'])
     nodes = make_duflat(root, max_nodes)
     for node in nodes:
         print(node)
+    if arguments['--influx']:
+        output_to_influxdb(nodes)
 
 if __name__ == '__main__':
     main()
